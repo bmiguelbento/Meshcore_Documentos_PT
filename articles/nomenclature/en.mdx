@@ -1,0 +1,125 @@
+---
+date: "2025-10-28"
+description: "Standard naming convention for MeshCore devices to identify type, location, and characteristics."
+preTitle: "Documentation"
+tags: ["articles", "standards", "devices"]
+title: "Naming Convention"
+---
+
+<Alert severity="warning" sx={{ my: 3 }}>
+	**Need help choosing a device name?** <br />
+	Use the [Device Configurator](/tools/configurator) wizard to generate a correct device name and avoid key collisions.
+</Alert>
+
+## For Repeaters
+
+```
+[municipality code].[locality] [custom name] [number] [type][band]/[optional]
+```
+
+**Examples:**
+
+- `LI.LSB Olaias R4`
+- `SA.TMR Fonte Dom João R4/O`
+- `SA.TMR Fonte Dom João 2 R4/O`
+
+## For Clients
+
+```
+[Nickname] C[band]
+```
+
+**Examples:**
+
+- `João C4`
+- `Maria C8`
+
+---
+
+## Reference Tables
+
+### Device Types
+
+| Code | Type        | Description                  |
+| ---- | ----------- | ---------------------------- |
+| `C`  | Client      | End-user device              |
+| `R`  | Repeater    | Network range extender       |
+| `RS` | Room Server | Messaging server with repeat |
+| `G`  | Gateway     | Cross-band/network bridge    |
+
+### Frequency Bands
+
+| Code | Frequency | Common Use                     |
+| ---- | --------- | ------------------------------ |
+| `4`  | 433 MHz   | Long-range, lower bandwidth    |
+| `8`  | 868 MHz   | Medium-range, higher bandwidth |
+| `2`  | 2.4 GHz   | Short-range, highest bandwidth |
+
+> **Note:** For gateways, use input/output band notation (e.g., `G4/8` for 433 MHz to 868 MHz gateway)
+
+### Optional Suffixes
+
+| Code | Meaning  | Description                                      |
+| ---- | -------- | ------------------------------------------------ |
+| `/B` | Battery  | Has battery backup but depends on mains power    |
+| `/M` | Mobile   | Car-mounted, portable, or temporary installation |
+| `/O` | Off-grid | Solar/battery powered (implies battery)          |
+
+> **Note:** The use of optional suffixes in client names is discouraged.
+
+---
+
+## Practical Examples
+
+| Device Name                    | Type        | Description                                |
+| ------------------------------ | ----------- | ------------------------------------------ |
+| `LI.LSB Olaias R4`             | Repeater    | Mains-powered 433 MHz repeater             |
+| `LI.LSB Lisboa RS4/B`          | Room Server | 433 MHz room server with battery backup    |
+| `LI.LSB Alameda G4/8/O`        | Gateway     | Off-grid 433→868 MHz gateway               |
+| `LI.LSB Alameda G8/4/O`        | Gateway     | Off-grid 868→433 MHz gateway (return path) |
+| `SA.TMR Fonte Dom João R4/O`   | Repeater    | Off-grid 433 MHz repeater                  |
+| `SA.TMR Fonte Dom João 2 R4/O` | Repeater    | Second off-grid repeater at same location  |
+| `Test Cave R8/M`               | Repeater    | Mobile 868 MHz repeater for testing        |
+| `João C4`                      | Client      | 433 MHz client device                      |
+| `Maria C8`                     | Client      | 868 MHz client device                      |
+
+---
+
+## Guidelines
+
+**Mobile Repeaters (`/M`):**
+
+- Free naming without location codes
+- Temporary/private nature
+- Used for testing and portable installations
+
+**Private Repeaters:**
+
+- May not broadcast advertisements
+- Names may not appear publicly
+
+**Emojis:**
+
+- Encouraged for visual identification
+- Never use as the first character
+
+**Duplicate Names:**
+
+- Use numerals (2, 3, etc.) when two repeaters share the same name in one region
+
+**Mains-Powered Devices:**
+
+- No optional suffixes needed (default state)
+
+**Legacy Abbreviations:**
+
+- Old: `CL`, `RPT`, `RPT+RS`
+- New: `C`, `R`, `RS`
+
+---
+
+## Municipality Codes
+
+import MunicipalityTable from "@/components/docs/MunicipalityTable";
+
+<MunicipalityTable />

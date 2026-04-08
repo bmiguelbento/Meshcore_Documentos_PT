@@ -1,0 +1,284 @@
+---
+date: "2025-10-14"
+description: "Este trabajo fue realizado por un grupo de voluntarios que prefieren permanecer en el anonimato. El tiempo dedicado, los recursos puestos a disposición y la investigación que se propusieron realizar fueron de crucial importancia. Especialmente en las últimas tres semanas, desde que se anunció la transición a banda estrecha en 868, los esfuerzos se intensificaron dado la urgencia de la decisión. Muchas gracias a todos los que contribuyeron a esta decisión."
+preTitle: "MeshCore 868 MHz"
+tags: ["articles", "study", "868mhz"]
+title: "Estudio Técnico sobre la Banda de 868 MHz"
+---
+
+import { Add, BarChart, Check, GraphicEq, Handshake, Remove, Straighten } from "@mui/icons-material";
+
+## La Necesidad de Cambio
+
+La banda de 868 MHz, más específicamente entre 869,400 MHz y 869,650 MHz, es ampliamente codiciada debido a la posibilidad de utilizar mayor potencia, 500 mW en lugar de 25 mW o 10 mW. Por este motivo, hay muchos servicios operando en esta banda, incluida la red Meshtastic y, más recientemente, MeshCore.
+
+La frecuencia de 869,525 MHz (la frecuencia central de la banda) es utilizada por el servicio LoRaWAN con SF9 BW125, lo que impacta toda la parte central de la banda. Transmitir en este segmento, que está fuertemente ocupado a nivel nacional, es un error que debe evitarse.
+
+Por un lado, los parámetros iniciales de MeshCore coincidían con los de Meshtastic (el mismo ancho de banda, 250 kHz), que a su vez ocupan todo el rango disponible, pero por otro lado, hay muchos otros servicios que utilizan mayor potencia y, por lo tanto, también están en este rango. Por ejemplo, LoRaWAN, como se explicó anteriormente.
+
+La frecuencia central es 869,525 MHz, con un ancho de banda de 250 kHz. MeshCore adoptó un SF 10, mientras que Meshtastic utiliza SF 11. Esta diferencia permitió evitar algunas colisiones, aunque no resolvió completamente el problema, pero fue lo posible. Ocurre que, rápidamente, en Inglaterra, los parámetros fueron cambiados a SF 11, ganando 3 dB, pero con la consecuencia de colisionar completamente con Meshtastic. Considero que fue una mala decisión, pero no afectó a Portugal, ya que continuamos utilizando SF 10.
+
+## La Motivación para el Cambio
+
+El crecimiento de la red en la banda de 868 en Portugal nuevamente planteó la necesidad de una selección cuidadosa de parámetros LoRa. La banda, ya congestionada, nos lleva a optar por un slot más limpio, no solo para evitar interferencias, sino también para no afectar servicios que ya existen. El objetivo, por lo tanto, es que el crecimiento de la red MeshCore no perjudique los servicios restantes en esta banda libre. Se añade a esto el hecho de que los parámetros anunciados por Inglaterra como mejores (banda estrecha) no tienen sentido técnico o no se aplican a la realidad portuguesa.
+
+import SDRImage1 from "@/public/assets/docs/estudo868/sdr-1.webp";
+import SDRImage2 from "@/public/assets/docs/estudo868/sdr-2.webp";
+import SDRImage3 from "@/public/assets/docs/estudo868/sdr-3.webp";
+
+<Box
+	sx={{
+		mb: 6,
+		display: "grid",
+		gridTemplateColumns: {
+			xs: "1fr",
+			sm: "repeat(2, 1fr)",
+			md: "repeat(3, 1fr)",
+		},
+		gap: 2,
+	}}
+>
+	<Box
+		sx={{
+			display: "flex",
+			alignItems: "center",
+			flexDirection: "column",
+			transition: "all 0.3s ease-in-out",
+			cursor: "pointer",
+			overflow: "hidden",
+			borderRadius: 2,
+			"&:hover": {
+				transform: "translateY(-4px)",
+				boxShadow: 4,
+			},
+		}}
+		component="a"
+		href={SDRImage1.src}
+		target="_blank"
+		rel="noopener noreferrer"
+	>
+		<Image src={SDRImage1} alt="Captura SDR" style={{ width: "100%", height: "auto" }} />
+	</Box>
+	<Box
+		sx={{
+			display: "flex",
+			alignItems: "center",
+			flexDirection: "column",
+			transition: "all 0.3s ease-in-out",
+			cursor: "pointer",
+			overflow: "hidden",
+			borderRadius: 2,
+			"&:hover": {
+				transform: "translateY(-4px)",
+				boxShadow: 4,
+			},
+		}}
+		component="a"
+		href={SDRImage2.src}
+		target="_blank"
+		rel="noopener noreferrer"
+	>
+		<Image src={SDRImage2} alt="Captura SDR" style={{ width: "100%", height: "auto" }} />
+	</Box>
+	<Box
+		sx={{
+			display: "flex",
+			alignItems: "center",
+			flexDirection: "column",
+			transition: "all 0.3s ease-in-out",
+			cursor: "pointer",
+			overflow: "hidden",
+			borderRadius: 2,
+			"&:hover": {
+				transform: "translateY(-4px)",
+				boxShadow: 4,
+			},
+		}}
+		component="a"
+		href={SDRImage3.src}
+		target="_blank"
+		rel="noopener noreferrer"
+	>
+		<Image src={SDRImage3} alt="Captura SDR" style={{ width: "100%", height: "auto" }} />
+	</Box>
+</Box>
+
+## Análisis de Perfiles Internacionales
+
+Esta sección examina las características técnicas y el desempeño de diversas configuraciones de comunicaciones inalámbricas en diferentes regiones, enfocándose en sus frecuencias, anchos de banda (BW), factores de dispersión (SF) y tasas de codificación (CR). El objetivo es identificar mejores prácticas y evitar trampa que puedan afectar la eficiencia e interoperabilidad de las comunicaciones en las bandas de frecuencia abordadas.
+
+<Box sx={{ mb: 6 }}>
+	<Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" }, gap: 3, mb: 6 }}>
+		{/* EU/UK (Narrow) */}
+		<Card
+			sx={{
+				height: "100%",
+				display: "flex",
+				flexDirection: "column",
+				transition: "all 0.3s ease-in-out",
+				"&:hover": {
+					transform: "translateY(-8px)",
+					boxShadow: 4,
+				},
+			}}
+		>
+			<CardContent sx={{ flexGrow: 1, p: 3, display: "flex", flexDirection: "column" }}>
+				<Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+					<Typography variant="body1" component="div" sx={{ fontWeight: "bold" }}>
+						Reino Unido (Estrecho)
+						<br />869,618 MHz, BW62,5, SF8 y CR8
+					</Typography>
+				</Box>
+
+    			<Box sx={{ mb: 2, color: "success.main" }}>
+    				<Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+    					<Add sx={{ fontSize: 16 }} />
+    					<Typography variant="body1">Utiliza banda estrecha (slot 4), mejorando la resistencia al ruido y las interferencias.</Typography>
+    				</Box>
+    				<Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+    					<Add sx={{ fontSize: 16 }} />
+    					<Typography variant="body1">Deja de interferir con muchos servicios que comparten la misma banda.</Typography>
+    				</Box>
+    			</Box>
+
+    			<Box sx={{ mb: 2, color: "error.main" }}>
+    				<Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+    					<Remove sx={{ fontSize: 16 }} />
+    					<Typography variant="body1">Resulta en una tasa de datos de 977 bps, solo un poco más de lo que actualmente tenemos en 433 MHz (732 bps).</Typography>
+    				</Box>
+    				<Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+    					<Remove sx={{ fontSize: 16 }} />
+    					<Typography variant="body1">La elección de CR8 es un error, ya que consume una gran parte del espacio destinado a la corrección de errores.</Typography>
+    				</Box>
+    			</Box>
+    		</CardContent>
+    	</Card>
+
+    	{/* Czech Republic (Narrow) */}
+    	<Card
+    		sx={{
+    			height: "100%",
+    			display: "flex",
+    			flexDirection: "column",
+    			transition: "all 0.3s ease-in-out",
+    			"&:hover": {
+    				transform: "translateY(-8px)",
+    				boxShadow: 4,
+    			},
+    		}}
+    	>
+    		<CardContent sx={{ flexGrow: 1, p: 3, display: "flex", flexDirection: "column" }}>
+    			<Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+    				<Typography variant="body1" component="div" sx={{ fontWeight: "bold" }}>
+    					República Checa (Estrecha)
+    					<br />869,525 MHz, BW62,5, SF7 y CR5
+    				</Typography>
+    			</Box>
+
+    			<Box sx={{ mb: 2, color: "success.main" }}>
+    				<Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+    					<Add sx={{ fontSize: 16 }} />
+    					<Typography variant="body1">SF 7 y CR5 serían una buena elección, permitiendo alcanzar una tasa de datos de 2,73 kbps.</Typography>
+    				</Box>
+    			</Box>
+
+    			<Box sx={{ mb: 2, color: "error.main" }}>
+    				<Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+    					<Remove sx={{ fontSize: 16 }} />
+    					<Typography variant="body1">La frecuencia corresponde al centro de la banda, sin ser ni slot 2 ni slot 3, pero superponiéndose a ambas. Además, en Portugal, esta parte de la banda ya está ocupada con otras transmisiones, como LoRaWAN.</Typography>
+    				</Box>
+    			</Box>
+    		</CardContent>
+    	</Card>
+    </Box>
+
+</Box>
+
+> Ninguno de los dos perfiles satisface los requisitos de Portugal para una red que, a juzgar por su crecimiento actual, alcanzará en el mediano plazo 1000 dispositivos. Además, como las redes mesh son principalmente locales, Portugal puede elegir los parámetros que más le convengan, sin perjuicio de que la red se extienda a España o incluso a otros países.
+
+## La Solución para Portugal
+
+La red MeshCore en 433 MHz, más específicamente en `433,375 BW 62,5 SF 9 CR 6`, se mantiene sin cambios. La existencia de puentes (bridges), dispositivos que interconectan las redes 433 y 868 por radio, facilita la expansión de cobertura, ya que solo es necesario que el usuario acceda a través de una de estas redes.
+
+Buscamos, por lo tanto, cumplir los siguientes criterios:
+
+- Tasa de datos superior a 2 kbps
+- Reducir colisión con servicios existentes
+- Utilizar banda estrecha (62,5 kHz) como forma de coexistir con otros servicios
+
+### Metodología
+
+La metodología adoptada para este estudio fue multifacética y rigurosa, iniciando con un análisis de campo detallado para evaluar la ocupación del espectro radioeléctrico en diversas ubicaciones estratégicas del territorio. Esta investigación tuvo como objetivo no solo medir los niveles de ruido e identificar canales claros, sino también verificar, siempre que fue posible, los servicios existentes en la banda, mapeando su naturaleza y relevancia para evitar interferencias en sistemas críticos. Simultáneamente, se realizaron proyecciones de crecimiento de la red, con modelado de tráfico para estimar la tasa de datos futura necesaria y garantizar la escalabilidad de la solución.
+
+En paralelo, se realizó una investigación teórica profunda, que incluyó la recolección de ejemplos, estudios de caso y testimonios técnicos sobre la modulación LoRa y sus parámetros de optimización, como Factor de Dispersión y Ancho de Banda. Para enriquecer este análisis, se consultó a expertos reconocidos en la industria y la academia, con experiencia comprobada en LoRa y arquitecturas de redes mesh, para obtener conocimientos prácticos y validar supuestos teóricos.
+
+En base a los datos recopilados, las opciones de configuración se compararon directamente con los perfiles de canal ya establecidos y regulados en la UE/Reino Unido y en la República Checa, realizando un benchmarking para evaluar la interoperabilidad y las mejores prácticas. Posteriormente, se verificaron minuciosamente las implicaciones técnicas, regulatorias y operacionales de la elección final. Finalmente, todo el proceso culminó en la elaboración de un plan de transición detallado, esbozando una hoja de ruta por fases para la implementación, con estrategias de mitigación de riesgos para asegurar una migración suave y eficiente.
+
+### Resultado
+
+import LoraParametersCard from "@/components/docs/loraParametersCard";
+
+<LoraParametersCard
+	frequencyLabel="Frecuencia"
+	frequencyValue="869,61875 MHz"
+	bwLabel="Ancho de Banda (BW)"
+	bwValue="62,5 kHz"
+	sfLabel="Factor de Dispersión (SF)"
+	sfValue="7"
+	crLabel="Tasa de Codificación (CR)"
+	crValue="4:6"
+/>
+
+## Estimación de la Saturación de la Red
+
+import LaTexImage from "@/components/layout/latexImage";
+import LaTeCodingRate from "@/public/assets/docs/estudo868/LaTeX-cr.webp";
+import LaTeXBitRate from "@/public/assets/docs/estudo868/LaTeX-rb.webp";
+import LaTeXPayloadSymbol from "@/public/assets/docs/estudo868/LaTeX-spayload.webp";
+import LaTeXPreambleSymbol from "@/public/assets/docs/estudo868/LaTeX-spreamble.webp";
+import LaTeXTimeSymbol from "@/public/assets/docs/estudo868/LaTeX-tsb.webp";
+import LaTeXTimeTotal from "@/public/assets/docs/estudo868/LaTeX-ttotal.webp";
+
+Esta sección explica cómo estimar el límite máximo de datos que una red LoRa puede soportar antes de saturarse. Para esto, se analiza el "tiempo de antena" (airtime), es decir, el tiempo que tarda cada paquete de información en ser transmitido. Este tiempo de transmisión se calcula en base a las diferentes configuraciones de red y al tamaño promedio de los mensajes enviados.
+
+Sin embargo, es fundamental entender que esta es una estimación teórica, realizada bajo condiciones ideales de laboratorio. En el mundo real, el desempeño de una red se ve afectado por muchos otros factores, como obstáculos físicos (paredes, edificios), interferencias de otros equipos electrónicos y la distancia entre dispositivos. Por lo tanto, los valores calculados sirven como una referencia útil para comparar diferentes configuraciones, pero la capacidad real de la red en operación probablemente será diferente.
+
+### Cálculo de la Tasa de Bits
+
+La "tasa de bits" (bit rate) se utiliza para medir la cantidad de datos que se pueden transmitir o procesar en un intervalo de tiempo determinado. La siguiente tabla presenta el cálculo de la tasa de bits (bit rate) para cada perfil de parámetros LoRa:
+
+<LaTexImage src={LaTeXBitRate} alt="Fórmula de Tasa de Bits" width={448} height={142} />
+
+| Perfil        | BW    | SF  | CR  | Tasa de Bits |
+| ------------- | ----- | --- | --- | ------------ |
+| PT-433        | 62,5  | 9   | 4:6 | 732,4        |
+| PT-868        | 62,5  | 7   | 4:6 | 2278,6       |
+| UK-868        | 250,0 | 11  | 4:5 | 1074,2       |
+| UK-868-Narrow | 62,5  | 8   | 4:8 | 976,6        |
+
+La tasa de codificación es siempre una relación, 4 dividido por 5, 6, 7 u 8.
+
+<LaTexImage src={LaTeCodingRate} alt="Fórmula de Tasa de Codificación" width={407} height={86} />
+
+### Cálculo del Airtime
+
+Para calcular el airtime, es decir, el tiempo que tarda un conjunto de bits en transmitirse en LoRa, el proceso es más complejo. Primero, es necesario calcular la duración de la transmisión de cada símbolo en segundos:
+
+<LaTexImage src={LaTeXTimeSymbol} alt="Duración del Símbolo" width={199} height={91} />
+
+<LaTexImage src={LaTeXPreambleSymbol} alt="Número de Símbolos del Preámbulo" width={494} height={42} />
+
+<LaTexImage src={LaTeXPayloadSymbol} alt="Número de Símbolos de Carga Útil" width={1295} height={99} />
+
+<LaTexImage src={LaTeXTimeTotal} alt="Airtime Total" width={573} height={43} />
+
+| Frecuencia    | Preámbulo | Carga Útil | Tsb   | Spre   | Spay    | Ttotal  |
+| ------------- | --------- | ---------- | ----- | ------ | ------- | ------- |
+| PT-433        | 16        | 68         | 8,192 | 20,250 | 100,000 | 985,088 |
+| PT-868        | 16        | 68         | 2,048 | 20,250 | 128,000 | 303,616 |
+| UK-868        | 16        | 68         | 8,192 | 20,250 | 69,818  | 737,839 |
+| UK-868-Narrow | 16        | 68         | 4,096 | 20,250 | 147,000 | 685,056 |
+
+### Conclusión
+
+Basado en 3700 paquetes observados en la red, el tamaño promedio de un paquete es aproximadamente 86 bytes. Utilizando el ciclo de servicio del 10%, es decir, 6 minutos por hora, podemos usar el airtime para calcular el punto de saturación en paquetes para cada uno de los perfiles. Es decir, el nuevo perfil PT-868 representa un aumento en la capacidad de la red, en un punto determinado, de 3,2 veces (320%) en comparación con el 433 actual.

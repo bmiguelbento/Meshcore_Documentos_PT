@@ -1,0 +1,64 @@
+---
+author: Luís Lemos
+date: "2026-01-21"
+description: "Step-by-step guide to creating a bridge between different frequencies (433 MHz and 868 MHz) using two Heltec Wireless Stick Lite (WSL3) devices, enabling MeshCore network range expansion."
+preTitle: "Repeater Bridge"
+tags: ["tutorial", "bridge", "heltec"]
+title: "Heltec Wireless Stick Lite (WSL3)"
+---
+
+## Introduction
+
+MeshCore allows you to create a bridge between two different frequency ranges, such as between 433 MHz and 868 MHz. This functionality is particularly useful for expanding network coverage or connecting devices operating on different frequencies.
+
+To implement this bridge, two devices configured on different frequencies are required – one at 433 MHz and another at 868 MHz. Each device continues to function as a normal repeater on its own frequency, but additionally:
+
+- Repeats and listens to packets via RF on its frequency
+- Transmits and listens to packets through the physical connection between the two devices
+
+In this way, the bridge allows messages to pass from one network to another, creating a network with greater reach and flexibility.
+
+## Implementation
+
+The connection is made with just two wires and will be crossed between the TX and RX pins of each device. The TX of one connects to the RX of the other and vice versa. Optionally, we can connect GND (ground) between the two devices to ensure good communication. **If the power source is not common to both, this connection between the two GNDs becomes mandatory**
+
+#### Relevant pins for the connection
+
+| Header | Pin Nr | GPIO  | Function |
+| :----: | :----: | :---: | :------: |
+|   J3   |   19   | GPIO5 |    RX    |
+|   J3   |   18   | GPIO6 |    TX    |
+|   J3   |   3    |  GND  |  Ground  |
+|   J2   |   2    |  GND  |  Ground  |
+
+> Only one of the GNDs needs to be connected. You don't need to connect both!
+
+#### Headers:
+
+**J3:** Pins on the **right** side with the WLS3 vertical with the USB connector facing up and the metal parts facing you.
+
+**J2:** Pins on the **left** side with the WSL3 vertical with the USB connector facing up and the metal parts facing you.
+
+#### Illustration:
+
+![This is an alt text.](https://heltec.org/wp-content/uploads/2023/09/HTIT-WSL_V3.png "image")
+
+## Operation
+
+Once the connection has been made as explained above, and after each device has its respective firmware, the bridge will be fully operational. No further changes are necessary.
+
+#### Expected behaviour:
+
+In the case of the WSL3, whenever one of the repeaters receives a packet, if it needs to retransmit, it transmits to its RF network and to the connected repeater. In the next instant, we will see the white light of that other repeater turn on indicating that it is also transmitting the packet to its network. The white lights indicating that it is transmitting, under normal conditions should not turn on simultaneously, but rather taking turns.
+
+### Configuration
+
+| Action  | Command          | Details                                                                                                                                                 |
+| ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| get     | `bridge.type`    | Shows the configured bridge type (rs232, espnow or none).                                                                                               |
+| get/set | `bridge.enabled` | Enables or disables the bridge (on/off). Setting to "on" activates the bridge between the two devices.                                                  |
+| get/set | `bridge.delay`   | Sets the delay in milliseconds for packet transmission through the bridge (valid values: 0-10000 ms).                                                   |
+| get/set | `bridge.source`  | Sets the source of packets to transmit through the bridge. Use "rx" to retransmit received packets or "tx" to retransmit sent packets (logRx or logTx). |
+| get/set | `bridge.baud`    | Sets the serial transmission speed for the RS232 bridge in baud (valid values: 9600-115200).                                                            |
+
+> Use caution with the `get/set bridge.source` command, only use it if you understand the implications.

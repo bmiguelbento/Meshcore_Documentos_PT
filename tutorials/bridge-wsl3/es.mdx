@@ -1,0 +1,64 @@
+---
+author: Luís Lemos
+date: "2026-01-21"
+description: "Guía paso a paso para crear un puente entre diferentes frecuencias (433 MHz y 868 MHz) utilizando dos dispositivos Heltec Wireless Stick Lite (WSL3), permitiendo la expansión del alcance de la red MeshCore."
+preTitle: "Puente Repetidor"
+tags: ["tutorial", "bridge", "heltec"]
+title: "Heltec Wireless Stick Lite (WSL3)"
+---
+
+## Introducción
+
+MeshCore permite crear un puente entre dos rangos de frecuencia diferentes, como por ejemplo entre 433 MHz y 868 MHz. Esta funcionalidad es particularmente útil para expandir la cobertura de la red o conectar dispositivos que operan en frecuencias distintas.
+
+Para implementar este puente, son necesarios dos dispositivos configurados en frecuencias diferentes – uno en 433 MHz y otro en 868 MHz. Cada dispositivo continúa funcionando como un repetidor normal en su propia frecuencia, pero adicionalmente:
+
+- Repite y escucha paquetes vía RF en su frecuencia
+- Transmite y escucha paquetes a través de la conexión física entre los dos dispositivos
+
+De esta manera, el puente permite que los mensajes pasen de una red a otra, creando una red con mayor alcance y flexibilidad.
+
+## Implementación
+
+La conexión se realiza con solo dos cables y será cruzada entre los pines TX y RX de cada dispositivo. El TX de uno conecta al RX del otro y viceversa. Opcionalmente, podemos conectar GND (masa) entre los dos dispositivos para asegurar una buena comunicación. **Si la fuente de energía no es común a ambos, esta conexión entre los dos GND se vuelve obligatoria**
+
+#### Pines relevantes para la conexión
+
+| Header | Pin Nr | GPIO  | Función |
+| :----: | :----: | :---: | :-----: |
+|   J3   |   19   | GPIO5 |   RX    |
+|   J3   |   18   | GPIO6 |   TX    |
+|   J3   |   3    |  GND  |  Masa   |
+|   J2   |   2    |  GND  |  Masa   |
+
+> Solo es necesario conectar uno de los GND. ¡No hace falta conectar los dos!
+
+#### Headers:
+
+**J3:** Pines en el lado **derecho** con el WSL3 en vertical con el conector USB hacia arriba y las partes metálicas hacia usted.
+
+**J2:** Pines en el lado **izquierdo** con el WSL3 en vertical con el conector USB hacia arriba y las partes metálicas hacia usted.
+
+#### Ilustración:
+
+![This is an alt text.](https://heltec.org/wp-content/uploads/2023/09/HTIT-WSL_V3.png "imagen")
+
+## Funcionamiento
+
+Una vez realizada la conexión como se explica arriba, y después de que cada dispositivo tenga su firmware respectivo, el puente estará totalmente operativo. No son necesarios más cambios.
+
+#### Comportamiento esperado:
+
+En el caso del WSL3, siempre que uno de los repetidores recibe un paquete, si necesita retransmitirlo, este transmite a su red RF y al repetidor conectado. En el instante siguiente veremos que la luz blanca del otro repetidor se enciende indicando que también está transmitiendo el paquete a su red. Las luces blancas que indican que está transmitiendo, en condiciones normales no deberían encenderse simultáneamente, sino por turnos.
+
+### Configuración
+
+| Acción  | Comando          | Detalles                                                                                                                                                                        |
+| ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| get     | `bridge.type`    | Muestra el tipo de puente configurado (rs232, espnow o none).                                                                                                                   |
+| get/set | `bridge.enabled` | Activa o desactiva el puente (on/off). Establecer en "on" activa el puente entre los dos dispositivos.                                                                          |
+| get/set | `bridge.delay`   | Establece el retraso en milisegundos para la transmisión de paquetes a través del puente (valores válidos: 0-10000 ms).                                                         |
+| get/set | `bridge.source`  | Establece el origen de los paquetes a transmitir a través del puente. Use "rx" para retransmitir paquetes recibidos o "tx" para retransmitir paquetes enviados (logRx o logTx). |
+| get/set | `bridge.baud`    | Establece la velocidad de transmisión serie para el puente RS232 en baudios (valores válidos: 9600-115200).                                                                     |
+
+> Tenga cuidado con el comando `get/set bridge.source`, úselo solo si entiende las implicaciones.

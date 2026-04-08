@@ -1,0 +1,177 @@
+---
+author: Sérgio Matias
+date: "2025-09-21"
+description: "Análisis técnico detallado de los límites operativos de LoRa en Portugal: regulaciones de ANACOM, conceptos de decibelios, ciclos de trabajo y cálculos de potencia."
+preTitle: "Documentación"
+tags: ["articles", "legislation", "emission", "limits"]
+title: "Potencias de emisión, ciclos de operación, y sus límites"
+---
+
+## 1. Contexto Regulatorio
+
+En Portugal, la gestión del espectro radioeléctrico es responsabilidad de **ANACOM** (Autoridade Nacional de Comunicações). Para **Dispositivos de Corto Alcance (SRD)**, que incluyen los equipos utilizados en redes LoRa/Meshtastic, las regulaciones están armonizadas con las normas europeas, específicamente la **Recomendación 70-03 de la CEPT**.
+
+La operación de estos dispositivos se realiza bajo el régimen de **Exención de Licencia** (Equipos de corto alcance no específicos). Esta exención implica un cumplimiento estricto de las reglas de uso compartido para garantizar que miles de dispositivos puedan coexistir sin interferencias.
+
+[📄 Reglamento ANACOM - 2 de enero de 2025](https://www.anacom.pt/streaming/Isencao_deLicencaEstacao_02janeiro2025rev1VLIMPA.pdf?contentId=1188499&field=ATTACHED_FILE)
+
+---
+
+## 2. Conceptos Fundamentales
+
+Antes de analizar los límites, es esencial comprender la física y las matemáticas de la transmisión por radiofrecuencia.
+
+### El Decibelio (dB)
+
+En radiofrecuencia, rara vez usamos unidades lineales (Vatios) porque las variaciones de señal son inmensas (desde Vatios en el transmisor hasta picovatios en el receptor). Usamos el **decibelio**, una unidad logarítmica.
+
+- **Aumento de 3 dB** ≈ **2x** potencia (Se duplica)
+- **Aumento de 10 dB** = **10x** potencia
+- **Aumento de 20 dB** = **100x** potencia
+
+### dBm (Decibelio-milivatio)
+
+Es una unidad absoluta de potencia referenciada a **1 milivatio (mW)**.
+
+- `0 dBm` = 1 mW
+- `10 dBm` = 10 mW
+- `20 dBm` = 100 mW
+- `27 dBm` = 500 mW
+- `30 dBm` = 1000 mW (1 Vatio)
+
+### Ganancia de Antena (dBi vs dBd)
+
+Las antenas no "crean" potencia; la enfocan. La "Ganancia" describe cuánto enfoca la antena la energía en una dirección específica en comparación con una referencia teórica.
+
+- **dBi (Isotrópico):** Ganancia relativa a una fuente puntual teórica que irradia igualmente en todas direcciones (una esfera). Se usa en cálculos de **EIRP**.
+- **dBd (Dipolo):** Ganancia relativa a una antena Dipolo de Media Onda estándar. Se usa en cálculos de **ERP**.
+
+> **Fórmula de Conversión:**
+> `dBi = dBd + 2.15`
+>
+> Un dipolo (0 dBd) tiene una ganancia de 2.15 dBi.
+
+---
+
+## 3. Bandas de Frecuencia Permitidas
+
+### Banda de 433 MHz (LPD433)
+
+Históricamente usada para controles remotos y telemetría. Tiene excelente penetración de obstáculos pero límites de potencia muy restrictivos.
+
+- **Frecuencia:** 433.050 MHz a 434.790 MHz
+- **Potencia Máx (ERP):** **10 mW (10 dBm)**
+- **Ciclo de Trabajo:** **10%**
+
+### Banda de 868 MHz (SRD860)
+
+La banda estándar para ISM (Industrial, Científico y Médico) en Europa. Se subdivide en varias sub-bandas (g1, g2, g3, etc.), cada una con reglas diferentes. MeshCore utiliza el segmento específico que permite mayor potencia.
+
+- **Segmento:** **869.400 MHz – 869.650 MHz** (Banda h1.4 / Anexo 1)
+- **Potencia Máx (ERP):** **500 mW (27 dBm)**
+- **Ciclo de Trabajo:** **10%**
+
+> **Nota:** La mayoría de los otros segmentos en la banda de 868 MHz están limitados a **25 mW (14 dBm)** y **1%** de ciclo de trabajo. Por esto operamos específicamente en el rango 869.4-869.65 MHz.
+
+---
+
+## 4. Ciclo de Trabajo y "Airtime"
+
+El **Ciclo de Trabajo** (Duty Cycle) es el porcentaje de tiempo que se permite a un dispositivo transmitir dentro de una ventana de una hora.
+
+### ¿Qué significa 10%?
+
+Un límite del 10% significa que en una ventana móvil de 1 hora (3600 segundos), su dispositivo puede transmitir un máximo de **360 segundos (6 minutos)**.
+
+### El Impacto de los Parámetros LoRa
+
+El tiempo que tarda un paquete en transmitirse (**Airtime**) depende en gran medida del **Factor de Dispersión (SF)** y el **Ancho de Banda (BW)**.
+
+- **SF más alto (ej. SF12):** Aumenta el alcance pero incrementa drásticamente el tiempo en aire. Un solo mensaje de texto puede tardar 2-3 segundos en enviarse.
+- **SF más bajo (ej. SF7):** Reduce el alcance pero la transmisión es muy rápida (milisegundos).
+
+> **Implicación Técnica:**
+> Usar `SF12` consume su ciclo de trabajo típicamente 10-20 veces más rápido que `SF7`. Si alcanza el límite, el firmware (o la ley) requiere que el dispositivo deje de transmitir hasta que se despeje el búfer.
+
+---
+
+## 5. Cálculos de Potencia de Transmisión
+
+A los reguladores no les importa la configuración de potencia en su software; les importa el campo electromagnético real radiado al aire.
+
+### Definiciones
+
+1.  **Potencia Conducida (Pt):** La potencia de salida del chip de radio (SX1262/SX1276).
+2.  **Pérdidas (L):** Atenuación en cables, conectores y pararrayos.
+3.  **Potencia Radiada:**
+    - **EIRP:** Potencia Isotrópica Radiada Efectiva.
+    - **ERP:** Potencia Radiada Efectiva (referenciada a un dipolo).
+
+### Las "Fórmulas de Oro"
+
+**1. Calcular la Salida del Sistema (EIRP)**
+
+> `EIRP (dBm) = Pt (dBm) - Pérdidas (dB) + Ganancia de Antena (dBi)`
+
+**2. Convertir a Estándar Regulatorio (ERP)**
+
+> `ERP (dBm) = EIRP (dBm) - 2.15`
+
+### Ejemplos de Cálculo
+
+#### Ejemplo A: Configuración "Estándar" 868 MHz
+
+_Usuario configura radio al máx (22 dBm) con una antena genérica de 5 dBi._
+
+- **Radio (Pt):** 22 dBm (160 mW)
+- **Pérdida Cable (L):** 1 dB (típico RG58 corto)
+- **Antena (G):** 5 dBi
+- **EIRP:** `22 - 1 + 5 = 26 dBm`
+- **ERP:** `26 - 2.15 = 23.85 dBm`
+- **Límite:** 27 dBm
+- **Resultado:** ✅ **Cumple**. Tiene ~3 dB de margen.
+
+#### Ejemplo B: Configuración "Alta Ganancia" 868 MHz
+
+_Usuario usa antena de alta ganancia de 10 dBi conectada directamente._
+
+- **Radio (Pt):** 22 dBm
+- **Pérdida Cable (L):** 0 dB
+- **Antena (G):** 10 dBi
+- **EIRP:** `22 - 0 + 10 = 32 dBm`
+- **ERP:** `32 - 2.15 = 29.85 dBm`
+- **Límite:** 27 dBm
+- **Resultado:** ❌ **Ilegal**. Excede el límite por casi 3 dB (el doble de la potencia permitida).
+- **Corrección:** Debe reducir la potencia TX de la radio en software en 3 dB (ajustar a 19 dBm).
+
+#### Ejemplo C: "Error Común" 433 MHz
+
+_Usuario configura radio a 20 dBm (100mW) en 433 MHz._
+
+- **Radio (Pt):** 20 dBm
+- **Antena (G):** 2.15 dBi (Dipolo)
+- **ERP:** `(20 + 2.15) - 2.15 = 20 dBm`
+- **Límite:** 10 dBm
+- **Resultado:** ❌ **Ilegal**. Está 10 dB (10x potencia) por encima del límite.
+- **Corrección:** Para 433 MHz, **debe** bajar la potencia TX por software a ~10 dBm máx.
+
+---
+
+## 6. Topología y Salud de la Red
+
+¿Por qué adherirse a los límites? Además del aspecto legal, existe una razón técnica crítica: **Simetría del Enlace**.
+
+### El Efecto "Caimán"
+
+En términos de radio, un "Caimán" es una estación con "boca grande y orejas pequeñas".
+
+- **Boca Grande:** Transmite a alta potencia (ej. 5 Vatios).
+- **Orejas Pequeñas:** Su sensibilidad de recepción es fija por el chip LoRa (ej. -140 dBm).
+
+Si emite una señal a 5 Vatios, un nodo a 50km podría escucharlo. Intentarán responder. Sin embargo, su señal legal de 25mW nunca llegará a usted.
+
+- Usted cree que el enlace existe.
+- Ellos creen que el enlace existe.
+- **Realidad:** Los paquetes se pierden, los reintentos inundan la red y la malla se congestiona con paquetes no reconocidos.
+
+**Una red equilibrada es una red saludable.** Su potencia de transmisión debe estar equilibrada con su capacidad de recepción y las capacidades de sus vecinos.

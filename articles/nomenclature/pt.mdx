@@ -1,0 +1,126 @@
+---
+date: "2025-10-28"
+description: "Convenção de nomenclatura padrão para dispositivos MeshCore para identificar tipo, localização e características."
+preTitle: "Documentação"
+tags: ["articles", "standards", "devices"]
+title: "Nomenclatura"
+---
+
+<Alert severity="warning" sx={{ my: 3 }}>
+	**Precisa de ajuda para escolher um nome de dispositivo?** <br />
+	Use o assistente [Configurador de Dispositivos](/tools/configurator) para gerar um nome de dispositivo correto e
+	evitar colisões de chaves.
+</Alert>
+
+## Para Repetidores
+
+```
+[código município].[localidade] [nome personalizado] [número] [tipo][banda]/[opcional]
+```
+
+**Exemplos:**
+
+- `LI.LSB Olaias R4`
+- `SA.TMR Fonte Dom João R4/O`
+- `SA.TMR Fonte Dom João 2 R4/O`
+
+## Para Clientes
+
+```
+[Alcunha] C[banda]
+```
+
+**Exemplos:**
+
+- `João C4`
+- `Maria C8`
+
+---
+
+## Tabelas de Referência
+
+### Tipos de Dispositivo
+
+| Código | Tipo        | Descrição                           |
+| ------ | ----------- | ----------------------------------- |
+| `C`    | Cliente     | Dispositivo de utilizador final     |
+| `R`    | Repetidor   | Extensor de alcance da rede         |
+| `RS`   | Room Server | Servidor de mensagens com repetição |
+| `G`    | Gateway     | Ponte entre bandas/redes            |
+
+### Bandas de Frequência
+
+| Código | Frequência | Uso Comum                             |
+| ------ | ---------- | ------------------------------------- |
+| `4`    | 433 MHz    | Longo alcance, menor largura de banda |
+| `8`    | 868 MHz    | Alcance médio, maior largura de banda |
+| `2`    | 2.4 GHz    | Curto alcance, maior largura de banda |
+
+> **Nota:** Para gateways, use notação de banda de entrada/saída (ex: `G4/8` para gateway de 433 MHz para 868 MHz)
+
+### Sufixos Opcionais
+
+| Código | Significado | Descrição                                            |
+| ------ | ----------- | ---------------------------------------------------- |
+| `/B`   | Bateria     | Tem bateria de backup mas depende da rede elétrica   |
+| `/M`   | Móvel       | Montado em carro, portátil, ou instalação temporária |
+| `/O`   | Off-grid    | Alimentado por solar/bateria (implica bateria)       |
+
+> **Nota:** O uso de sufixos opcionais em nomes de clientes é desencorajado.
+
+---
+
+## Exemplos Práticos
+
+| Nome do Dispositivo            | Tipo        | Descrição                                         |
+| ------------------------------ | ----------- | ------------------------------------------------- |
+| `LI.LSB Olaias R4`             | Repetidor   | Repetidor 433 MHz alimentado pela rede elétrica   |
+| `LI.LSB Lisboa RS4/B`          | Room Server | Room server 433 MHz com bateria de backup         |
+| `LI.LSB Alameda G4/8/O`        | Gateway     | Gateway off-grid 433→868 MHz                      |
+| `LI.LSB Alameda G8/4/O`        | Gateway     | Gateway off-grid 868→433 MHz (caminho de retorno) |
+| `SA.TMR Fonte Dom João R4/O`   | Repetidor   | Repetidor off-grid 433 MHz                        |
+| `SA.TMR Fonte Dom João 2 R4/O` | Repetidor   | Segundo repetidor off-grid na mesma localização   |
+| `Test Cave R8/M`               | Repetidor   | Repetidor móvel 868 MHz para testes               |
+| `João C4`                      | Cliente     | Dispositivo cliente 433 MHz                       |
+| `Maria C8`                     | Cliente     | Dispositivo cliente 868 MHz                       |
+
+---
+
+## Diretrizes
+
+**Repetidores Móveis (`/M`):**
+
+- Nomenclatura livre sem códigos de localização
+- Natureza temporária/privada
+- Usados para testes e instalações portáteis
+
+**Repetidores Privados:**
+
+- Podem não transmitir anúncios
+- Os nomes podem não aparecer publicamente
+
+**Emojis:**
+
+- Encorajados para identificação visual
+- Nunca usar como primeiro caractere
+
+**Nomes Duplicados:**
+
+- Usar numerais (2, 3, etc.) quando dois repetidores partilham o mesmo nome numa região
+
+**Dispositivos Alimentados pela Rede Elétrica:**
+
+- Não necessitam de sufixos opcionais (estado padrão)
+
+**Abreviaturas Antigas:**
+
+- Antigas: `CL`, `RPT`, `RPT+RS`
+- Novas: `C`, `R`, `RS`
+
+---
+
+## Códigos de Município
+
+import MunicipalityTable from "@/components/docs/MunicipalityTable";
+
+<MunicipalityTable />

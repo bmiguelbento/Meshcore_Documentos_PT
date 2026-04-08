@@ -1,0 +1,177 @@
+---
+author: Sérgio Matias
+date: "2025-09-21"
+description: "Detailed technical analysis of LoRa operating limits in Portugal: ANACOM regulations, decibel concepts, duty cycles, and power calculations."
+preTitle: "Documentation"
+tags: ["articles", "legislation", "emission", "limits"]
+title: "Emission powers, operating cycles, and their limits"
+---
+
+## 1. Regulatory Context
+
+In Portugal, the management of the radio spectrum is the responsibility of **ANACOM** (Autoridade Nacional de Comunicações). For **Short Range Devices (SRD)**, which include the equipment used in LoRa/Meshtastic networks, the regulations are harmonized with European standards, specifically **CEPT Recommendation 70-03**.
+
+The operation of these devices is carried out on a **License Exempt** basis (Non-specific short-range equipment). This exemption implies strict adherence to sharing rules to ensure that thousands of devices can coexist without interference.
+
+[📄 ANACOM Regulation - January 02, 2025](https://www.anacom.pt/streaming/Isencao_deLicencaEstacao_02janeiro2025rev1VLIMPA.pdf?contentId=1188499&field=ATTACHED_FILE)
+
+---
+
+## 2. Fundamental Concepts
+
+Before analyzing the limits, it is essential to understand the physics and mathematics of radio frequency transmission.
+
+### The Decibel (dB)
+
+In radio frequency, we rarely use linear units (Watts) because signal variations are immense (from Watts at the transmitter to picowatts at the receiver). We use the **decibel**, a logarithmic unit.
+
+- **3 dB increase** ≈ **2x** power (Doubles)
+- **10 dB increase** = **10x** power
+- **20 dB increase** = **100x** power
+
+### dBm (Decibel-milliwatts)
+
+Is an absolute unit of power referenced to **1 milliwatt (mW)**.
+
+- `0 dBm` = 1 mW
+- `10 dBm` = 10 mW
+- `20 dBm` = 100 mW
+- `27 dBm` = 500 mW
+- `30 dBm` = 1000 mW (1 Watt)
+
+### Antenna Gain (dBi vs dBd)
+
+Antennas do not "create" power; they focus it. The "Gain" describes how much the antenna focuses energy in a specific direction compared to a theoretical reference.
+
+- **dBi (Isotropic):** Gain relative to a theoretical point source that radiates equally in all directions (a sphere). Used in **EIRP** calculations.
+- **dBd (Dipole):** Gain relative to a standard Half-Wave Dipole antenna. Used in **ERP** calculations.
+
+> **Conversion Formula:**
+> `dBi = dBd + 2.15`
+>
+> A dipole (0 dBd) has a gain of 2.15 dBi.
+
+---
+
+## 3. Allowable Frequency Bands
+
+### 433 MHz Band (LPD433)
+
+Historically used for remote controls and telemetry. It has excellent obstacle penetration but very restrictive power limits.
+
+- **Frequency:** 433.050 MHz to 434.790 MHz
+- **Max Power (ERP):** **10 mW (10 dBm)**
+- **Duty Cycle:** **10%**
+
+### 868 MHz Band (SRD860)
+
+The standard band for ISM (Industrial, Scientific, and Medical) in Europe. It is subdivided into several sub-bands (g1, g2, g3, etc.), each with different rules. MeshCore uses the specific segment that allows for higher power.
+
+- **Segment:** **869.400 MHz – 869.650 MHz** (Band h1.4 / Annex 1)
+- **Max Power (ERP):** **500 mW (27 dBm)**
+- **Duty Cycle:** **10%**
+
+> **Note:** Most other segments in the 868 MHz band are limited to **25 mW (14 dBm)** and **1%** duty cycle. This is why we specifically operate in the 869.4-869.65 MHz range.
+
+---
+
+## 4. Duty Cycle and "Airtime"
+
+The **Duty Cycle** is the percentage of time a device is allowed to transmit within a one-hour window.
+
+### What does 10% mean?
+
+A 10% limit means that in a rolling 1-hour window (3600 seconds), your device can transmit for a maximum of **360 seconds (6 minutes)**.
+
+### The Impact of LoRa Parameters
+
+The time a packet takes to transmit (**Airtime**) depends heavily on the **Spreading Factor (SF)** and **Bandwidth (BW)**.
+
+- **Higher SF (e.g., SF12):** Increases range but drastically increases airtime. A single text message might take 2-3 seconds to send.
+- **Lower SF (e.g., SF7):** Reduces range but transmission is very fast (milliseconds).
+
+> **Technical Implication:**
+> Using `SF12` typically consumes your duty cycle 10-20 times faster than `SF7`. If you hit the limit, the firmware (or the law) requires the device to stop transmitting until the buffer clears.
+
+---
+
+## 5. Transmission Power Calculations
+
+Regulators do not care about the power setting in your software; they care about the actual electromagnetic field radiated into the air.
+
+### Definitions
+
+1.  **Conducted Power (Pt):** The power output by the radio chip (SX1262/SX1276).
+2.  **Losses (L):** Attenuation in cables, connectors, and lightning arrestors.
+3.  **Radiated Power:**
+    - **EIRP:** Effective Isotropic Radiated Power.
+    - **ERP:** Effective Radiated Power (referenced to a dipole).
+
+### The "Golden Formulas"
+
+**1. Calculate the System's Output (EIRP)**
+
+> `EIRP (dBm) = Pt (dBm) - Losses (dB) + Antenna Gain (dBi)`
+
+**2. Convert to Regulatory Standard (ERP)**
+
+> `ERP (dBm) = EIRP (dBm) - 2.15`
+
+### Calculation Examples
+
+#### Example A: 868 MHz "Standard" Setup
+
+_User sets radio to max (22 dBm) with a generic 5 dBi antenna._
+
+- **Radio (Pt):** 22 dBm (160 mW)
+- **Cable Loss (L):** 1 dB (typical RG58 short run)
+- **Antenna (G):** 5 dBi
+- **EIRP:** `22 - 1 + 5 = 26 dBm`
+- **ERP:** `26 - 2.15 = 23.85 dBm`
+- **Limit:** 27 dBm
+- **Result:** ✅ **Compliant**. You have ~3 dB of headroom.
+
+#### Example B: 868 MHz "High Gain" Setup
+
+_User uses a high-gain 10 dBi antenna directly attached._
+
+- **Radio (Pt):** 22 dBm
+- **Cable Loss (L):** 0 dB
+- **Antenna (G):** 10 dBi
+- **EIRP:** `22 - 0 + 10 = 32 dBm`
+- **ERP:** `32 - 2.15 = 29.85 dBm`
+- **Limit:** 27 dBm
+- **Result:** ❌ **Illegal**. You are exceeding the limit by nearly 3 dB (double the allowed power).
+- **Correction:** You must reduce the radio TX power in software by 3 dB (set to 19 dBm).
+
+#### Example C: 433 MHz "Common Mistake"
+
+_User sets radio to 20 dBm (100mW) on 433 MHz._
+
+- **Radio (Pt):** 20 dBm
+- **Antenna (G):** 2.15 dBi (Dipole)
+- **ERP:** `(20 + 2.15) - 2.15 = 20 dBm`
+- **Limit:** 10 dBm
+- **Result:** ❌ **Illegal**. You are 10 dB (10x power) over the limit.
+- **Correction:** For 433 MHz, you **must** lower the software TX power to ~10 dBm max.
+
+---
+
+## 6. Network Topology & Health
+
+Why stick to the limits? Besides the legal aspect, there is a critical technical reason: **Link Symmetry**.
+
+### The "Alligator" Effect
+
+In radio terms, an "Alligator" is a station with a "big mouth and small ears."
+
+- **Big Mouth:** You transmit at high power (e.g., 5 Watts).
+- **Small Ears:** Your receive sensitivity is fixed by the LoRa chip (e.g., -140 dBm).
+
+If you blast out a signal at 5 Watts, a node 50km away might hear you. They will try to reply. However, their legal 25mW signal will never reach you.
+
+- You believe the link exists.
+- They believe the link exists.
+- **Reality:** Packets are lost, retries flood the network, and the mesh becomes congested with unacknowledged packets.
+
+**A balanced network is a healthy network.** Your transmission power should be balanced with your receive capability and the capabilities of your neighbors.

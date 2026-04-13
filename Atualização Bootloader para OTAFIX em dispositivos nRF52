@@ -1,0 +1,239 @@
+
+---
+title: Atualização Bootloader para OTAFIX em dispositivos nRF52 (MeshCore)
+description: Guia completo sobre o bootloader OTAFIX para MeshCore — o que é, porque atualizar, instalação passo‑a‑passo e troubleshooting.
+tags:
+  - MeshCore
+  - OTA
+  - OTAFIX
+  - Bootloader
+  - nRF52
+---
+
+## Dispositivos aplicáveis
+
+- Heltec Automation Mesh Node T114 / HT-nRF5262  
+- Nologo ProMicro nRF52840 (SuperMini nRF52840)  
+- Seeed Studio SenseCAP Card Tracker T1000‑E  
+- Seeed Studio Wio Tracker L1  
+- Seeed Studio XIAO nRF52840 BLE  
+- Seeed Studio XIAO nRF52840 BLE SENSE  
+- RAK 4631  
+- RAK WisMesh Tag  
+
+## Referências
+
+- https://github.com/whywilson/adafruit_nRF52_Bootloader_OTAFIX  
+- https://blog.meshcore.io/2026/04/06/otafix-bootloader  
+
+---
+
+## O que é um bootloader?
+
+O bootloader é um pequeno programa residente numa área protegida da memória do microcontrolador (nRF52).  
+É executado sempre que o dispositivo arranca.
+
+### Funções principais do bootloader
+
+- Inicializar o hardware essencial  
+- Verificar se existe uma aplicação válida instalada  
+- Decidir como o dispositivo deve arrancar  
+- Permitir atualizações de firmware (USB e OTA – Over‑The‑Air)
+
+### Em dispositivos nRF52 usados em MeshCore
+
+O bootloader é responsável por:
+
+- Entrar em modo DFU por USB (UF2)
+- Entrar em modo DFU por Bluetooth (OTA)
+- Recuperar o dispositivo após falhas de firmware
+
+Sem um bootloader funcional, o dispositivo não pode ser atualizado nem recuperado sem acesso físico (SWD / J‑Link).
+
+---
+
+## Porque é importante atualizar o bootloader?
+
+O bootloader original da Adafruit para nRF52 apresenta problemas conhecidos no contexto de OTA via Bluetooth:
+
+- Se uma atualização OTA falhar, o dispositivo pode:
+  - ficar preso em modo USB (UF2)
+  - deixar de aceitar OTA
+- O processo OTA pode ser lento ou instável em várias placas (ProMicro, XIAO, RAK, etc.)
+- Em caso de falha, pode ser necessário acesso físico ao dispositivo
+
+Em MeshCore isto é particularmente crítico, porque muitos nós são repetidores instalados em telhados, torres ou locais de difícil acesso.
+
+Por esta razão foi criado o **OTAFIX Bootloader**.
+
+---
+
+## O que é o OTAFIX Bootloader?
+
+O OTAFIX Bootloader é uma versão modificada do bootloader original da Adafruit, criada especificamente para corrigir problemas de OTA via Bluetooth em dispositivos nRF52.
+
+### Principais melhorias
+
+- Se um OTA falhar, o dispositivo volta automaticamente ao modo OTA DFU  
+- Evita ficar bloqueado em modo USB  
+- OTA mais rápido e fiável  
+- Escrita em flash otimizada  
+- Menor risco de *brick* em dispositivos remotos  
+- Recomendado oficialmente para utilização com MeshCore  
+
+---
+
+## Quando deves instalar o OTAFIX?
+
+Deves instalar o OTAFIX Bootloader se:
+
+- Tens dispositivos nRF52 / nRF52840  
+- Pretendes usar OTA por Bluetooth  
+- Tens repetidores ou nós de difícil acesso  
+
+Em redes MeshCore com repetidores, não usar OTAFIX representa um risco desnecessário.
+
+---
+
+## Como instalar o OTAFIX (passo a passo)
+
+### Atenção – lê antes de começar
+
+- Instalar um bootloader é uma operação crítica  
+- Usa apenas o ficheiro correspondente ao modelo exato  
+- Não interrompas o processo nem desligues o USB  
+- A instalação de um novo bootloader apaga o dispositivo  
+
+---
+
+### Passo 1 – Entrar em modo UF2 (USB DFU)
+
+- Liga o dispositivo ao computador por USB  
+- Para todos os dispositivos **exceto** Seeed T1000‑E e ThinkNode M3:  
+  - Prime o botão RESET duas vezes rapidamente (menos de 0,5 s)
+- Apenas para Seeed T1000‑E:  
+  - Pressiona o botão e liga/desliga o cabo USB duas vezes rapidamente
+- Apenas para ThinkNode M3:  
+  - Mantém o botão pressionado durante 25 a 30 segundos
+
+Deverá aparecer uma unidade USB no computador — este é o modo UF2 DFU.
+
+---
+
+### Passo 2 – Verificar o bootloader atual (recomendado)
+
+- Abre a unidade USB  
+- Abre o ficheiro `INFO_UF2.TXT`  
+- Verifica:
+  - Board‑ID
+  - Modelo exato
+  - Se contém a indicação **OTAFIX**
+
+Se não tiver OTAFIX ou for uma versão antiga, deves atualizar.
+
+⚠️ Escolher um bootloader incorreto pode, no limite, causar a perda total do dispositivo.
+
+---
+
+### Passo 3 – Obter o OTAFIX Bootloader
+
+#### Opção A (recomendada)
+
+- Abrir: https://flasher.meshcore.io  
+- Selecionar o dispositivo  
+- Selecionar **Repeater**  
+- Fazer download do ficheiro `update‑XXXX.uf2`
+
+#### Opção B (manual)
+
+- Ir ao repositório OTAFIX no GitHub  
+- Aceder a **Releases**  
+- Fazer download do ficheiro `.uf2` correspondente ao modelo
+
+---
+
+### Passo 4 – Instalar o bootloader
+
+Com o dispositivo ainda em modo UF2:
+
+- Arrastar o ficheiro `update‑XXXX.uf2` para a unidade USB  
+- Aguardar a cópia e o reboot automático  
+
+Após reiniciar, o OTAFIX Bootloader está instalado.
+
+---
+
+### Passo 5 – Verificar a instalação
+
+- Voltar a abrir a unidade USB  
+- Abrir `INFO_UF2.TXT`  
+- Confirmar que o bootloader indica **OTAFIX**
+
+---
+
+### Passo 6 – Apenas para clientes (Companion) MeshCore
+
+- Abrir o flasher MeshCore  
+- Selecionar o rádio  
+- Executar **Erase** antes de instalar o firmware
+
+---
+
+## Troubleshooting (resolução de problemas)
+
+### O dispositivo não aparece como unidade USB
+
+Possíveis soluções:
+
+- Usar um cabo USB de dados  
+- Tentar outra porta USB  
+- Tentar outro computador  
+
+Se ocorreu após instalação de bootloader ou OTA, o dispositivo pode estar à espera de firmware.
+
+Soluções:
+
+- Fazer OTA com uma aplicação DFU suportada:
+  - *nRF Device Firmware Update*
+  - *nRF Connect*
+- Tentar novamente entrar em modo DFU usando os botões físicos
+
+---
+
+### INFO_UF2.TXT mostra um Board‑ID inesperado
+
+- Não continuar  
+- Confirmar o modelo exato da placa  
+- Descarregar o bootloader correto para essa variante  
+
+---
+
+### Firmware não arranca após instalar OTAFIX
+
+- Reinstalar o firmware MeshCore (USB ou OTA)  
+- Em alguns casos é necessário flash limpo após mudança de bootloader  
+
+---
+
+### OTA falha a meio
+
+- Aguardar alguns segundos  
+- O dispositivo deve regressar automaticamente ao modo OTA DFU  
+- Repetir o processo OTA  
+- Recomenda‑se a app *nRF Device Firmware Update* com:
+  - Packet Receipt Notification ativado  
+  - Número de pacotes: 5 a 8  
+
+---
+
+### Dispositivo parece “morto”
+
+- Verificar se entra novamente em modo UF2  
+- Se OTAFIX estiver instalado, brick total é improvável  
+- Caso não responda a UF2 nem OTA DFU, só resta recuperação por SWD / J‑Link  
+
+---
+
+### Ficheiro .UF2 é copiado mas não instala nem reinicia
+
+Situação ainda sob investigação.

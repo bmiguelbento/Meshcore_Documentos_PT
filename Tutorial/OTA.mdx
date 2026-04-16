@@ -1,0 +1,36 @@
+---
+title: "Atualização OTA passo-a-passo"
+description: "Este ficheiro descreve passo a passo o processo de atualização OTA nas placas baseadas em ESP32 e nRF5280."
+date: "2026-04-16"
+tags: ["tutorial", "OTA", "ESP32", "nRF52"]
+---
+
+
+Referencias: [OTA Updates on nRF Devices](https://blog.meshcore.io/2026/04/02/nrf-ota-update); [OTA Updates on ESP32 Devices](https://blog.meshcore.io/2026/04/01/esp-ota-update)
+
+
+## O que é uma atualização OTA? 
+
+OTA = Over The Air
+
+Uma atualização OTA é quando se atualiza o firmware de um repetidor ou de um servidor de mensagens por Wi-Fi (ESP32) ou por bluetooth (nRF52). Esta atualização não requer a ligação do rádio ao computador por USB.
+
+As atualizações OTA são útieis em Meshcore porque muitos dos nós são repetidores instalados em telhados, torres ou locais de difícil acesso, e torna-se pouco prático ligar estes rádios a um computador.
+
+
+## Como fazer atualização OTA?
+
+**Antes de começar**
+Fazer o download para o telefone do ficheiro do firmware que pretende instalar no rádio.
+- para nRF52: download do .zip
+- para ESP32: download do .bin
+
+
+
+
+**Passo 1 - ESP32 e nRF52**
+Aceder como administrador ao repetidor em modo de gestão (Manage) e na consola de comandos (Command Line) escrever o comando
+
+```
+start ota
+```
